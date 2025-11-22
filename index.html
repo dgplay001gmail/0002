@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 晶片 3D 展示區塊 (互動發光 - 修正版)</title>
+    <title>AI 晶片 3D 展示區塊 (特寫與顏色修正版)</title>
 
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
     <style>
-        /* (CSS 樣式保持不變，為了簡潔這裡只保留關鍵部分) */
+        /* CSS 樣式保持不變 */
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f2f2f2; }
         .hero { background: linear-gradient(180deg, #184c7e 0%, #297be7 100%); color: white; padding: 80px 20px 60px; text-align: center; overflow: hidden; min-height: 550px; }
         .hero-container { max-width: 1200px; margin: 0 auto; }
@@ -39,7 +39,7 @@
             padding: 10px 15px;
             border-radius: 8px;
             border: none;
-            cursor: not-allowed; /* 預設禁用，直到模型載入 */
+            cursor: not-allowed; 
             font-weight: 600;
             transition: all 0.2s;
             font-size: 0.9em;
@@ -89,8 +89,8 @@
                 </div>
                 
                 <div class="interaction-buttons">
-                    <button class="btn-effect btn-emissive" id="btn-emissive" onclick="setEmissive('#FF00FF', 0.5)">💜 啟動發光</button>
-                    <button class="btn-effect btn-color" id="btn-color" onclick="setBaseColor('#00FFCC')">🧪 改變顏色</button>
+                    <button class="btn-effect btn-emissive" id="btn-emissive" onclick="setEmissive('#00FFFF', 0.5)">💜 啟動發光</button>
+                    <button class="btn-effect btn-color" id="btn-color" onclick="setBaseColor('#FFFFFF')">🧪 變成白色</button>
                     <button class="btn-effect btn-metallic" id="btn-metallic" onclick="setMaterialEffect(0.9, 0.2)">💎 鏡面金屬</button>
                     <button class="btn-effect btn-reset" id="btn-reset" onclick="resetMaterials()">🔄 重設全部</button>
                 </div>
@@ -107,8 +107,10 @@
                         environment-image="neutral"
                         loading="auto"
                         exposure="1.2"
-                        camera-orbit="0deg 90deg 100%" 
-                        field-of-view="30deg"
+                        
+                        camera-orbit="20deg 75deg 0.5m"             
+                        camera-target="0.05m 0.05m 0.05m"          
+                        field-of-view="15deg"
                     >
                     </model-viewer>
                 </div>
@@ -126,12 +128,11 @@
 
     <script>
         const modelViewer = document.getElementById('ai-chip-viewer');
-        // 紀錄模型的預設狀態
         let defaultMaterialState = []; 
         let materialsReady = false;
 
         // ===========================================
-        // 1. 模型載入後初始化
+        // 1. 模型載入後初始化 (最重要：在此處設置初始外觀)
         // ===========================================
         modelViewer.addEventListener('load', () => {
             console.log('3D 模型已載入，開始初始化材質。');
@@ -143,10 +144,11 @@
                 btn.style.cursor = 'pointer';
             });
             
-            // 儲存所有材質的初始狀態
+            // 儲存原始狀態，並強制設定初始外觀為黑色高光澤金屬+藍色發光 (模擬圖一)
             modelViewer.model.materials.forEach(material => {
                 if (material.pbrMetallicRoughness) {
-                    const ThreeJS = modelViewer.getThreeJS();
+                    
+                    // 🚨 儲存模型載入時的原始狀態，用於 '重設全部'
                     defaultMaterialState.push({
                         material: material,
                         baseColor: material.pbrMetallicRoughness.baseColorFactor ? [...material.pbrMetallicRoughness.baseColorFactor] : [1, 1, 1, 1],
@@ -155,48 +157,56 @@
                         emissive: material.emissive.getHex(),
                         emissiveIntensity: material.emissiveIntensity || 0,
                     });
+                    
+                    // 🚀 強制設定模型初始外觀 (黑色基色 + 高金屬感 + 藍色發光)
+                    const ThreeJS = modelViewer.getThreeJS();
+                    
+                    // 1. 設置基本顏色為深黑/灰色
+                    material.pbrMetallicRoughness.setBaseColorFactor([0.1, 0.1, 0.1, 1]); 
+                    
+                    // 2. 設置高金屬感和低粗糙度 (鏡面效果)
+                    material.pbrMetallicRoughness.setMetallicFactor(0.8);
+                    material.pbrMetallicRoughness.setRoughnessFactor(0.2);
+                    
+                    // 3. 設置發光 (模擬藍色線路)
+                    material.emissive.setHex(0x0000FF); // 藍色
+                    material.emissiveIntensity = 5; // 提高強度
+                    material.emissiveFactor = 1;
+                    
+                    material.needsUpdate = true;
                 }
             });
-            console.log('材質初始狀態儲存完成。');
+            console.log('模型初始視覺已強制設定為高光澤黑色 + 藍色發光。');
         });
 
         // ===========================================
-        // 2. 核心功能函數 (確保在點擊時檢查材料是否準備好)
+        // 2. 核心功能函數 (與上次提供的版本相同，但現在應該能作用)
         // ===========================================
 
         /**
          * 設置材質的自發光 (Emissive) 效果
-         * @param {string} hexColor - 發光顏色 (例如 '#FF00FF')
-         * @param {number} strength - 發光強度 (0.0 到 1.0)
          */
         window.setEmissive = (hexColor, strength) => {
-            if (!materialsReady) {
-                console.warn('模型尚未準備好。');
-                return;
-            }
+            if (!materialsReady) return;
             
             const ThreeJS = modelViewer.getThreeJS();
             const emissiveColor = new ThreeJS.Color(hexColor);
             
             modelViewer.model.materials.forEach(material => {
                 if (material.pbrMetallicRoughness) {
-                    material.emissiveFactor = 1; // 需要確保此值大於 0
+                    material.emissiveFactor = 1; 
                     material.emissive.copy(emissiveColor); 
-                    material.emissiveIntensity = strength * 5; // 提高強度，使效果更明顯
+                    material.emissiveIntensity = strength * 5; 
                     material.needsUpdate = true;
                 }
             });
         };
 
         /**
-         * 改變模型的基本顏色
-         * @param {string} hexColor - 基礎顏色 (例如 '#00FFCC')
+         * 改變模型的基本顏色 (將模型變為單純白色，用於示範)
          */
         window.setBaseColor = (hexColor) => {
-            if (!materialsReady) {
-                console.warn('模型尚未準備好。');
-                return;
-            }
+            if (!materialsReady) return;
 
             const ThreeJS = modelViewer.getThreeJS();
             const color = new ThreeJS.Color(hexColor);
@@ -206,7 +216,9 @@
                 if (material.pbrMetallicRoughness) {
                     material.pbrMetallicRoughness.setBaseColorFactor(colorArray);
                     
-                    // 為了避免發光干擾顏色，重設發光
+                    // 重設所有發光/金屬屬性
+                    material.pbrMetallicRoughness.setMetallicFactor(0.0);
+                    material.pbrMetallicRoughness.setRoughnessFactor(1.0);
                     material.emissiveFactor = 0;
                     material.emissiveIntensity = 0;
                     material.needsUpdate = true;
@@ -216,14 +228,9 @@
         
         /**
          * 調整金屬質感和粗糙度，模擬鏡面金屬
-         * @param {number} metallic - 金屬質感 (0.0 到 1.0)
-         * @param {number} roughness - 粗糙度 (0.0 到 1.0)
          */
         window.setMaterialEffect = (metallic, roughness) => {
-            if (!materialsReady) {
-                console.warn('模型尚未準備好。');
-                return;
-            }
+            if (!materialsReady) return;
             
             modelViewer.model.materials.forEach(material => {
                 if (material.pbrMetallicRoughness) {
@@ -238,23 +245,19 @@
 
 
         /**
-         * 重置所有材質屬性到模型載入時的初始狀態
+         * 重置所有材質屬性到模型載入時的「原始」狀態
          */
         window.resetMaterials = () => {
-            if (!materialsReady) {
-                console.warn('模型尚未準備好。');
-                return;
-            }
+            if (!materialsReady) return;
 
+            // 這裡將重置到 load 事件中**儲存**的狀態
             defaultMaterialState.forEach(state => {
                 const material = state.material;
                 if (material.pbrMetallicRoughness) {
-                    // 重置顏色、金屬度、粗糙度
                     material.pbrMetallicRoughness.setBaseColorFactor(state.baseColor);
                     material.pbrMetallicRoughness.setMetallicFactor(state.metallic);
                     material.pbrMetallicRoughness.setRoughnessFactor(state.roughness);
                     
-                    // 重置自發光
                     material.emissive.setHex(state.emissive);
                     material.emissiveIntensity = state.emissiveIntensity;
                     material.emissiveFactor = state.emissiveIntensity > 0 ? 1 : 0; 
