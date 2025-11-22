@@ -3,75 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 晶片 3D 展示區塊</title>
+    <title>AI 晶片 3D 展示區塊 (GitHub 託管)</title>
 
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
     <style>
-        /* 基礎設置與字體 */
+        /* 基礎設置與樣式 */
         body { 
             margin: 0; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f2f2f2; 
         }
 
-        /* ------------------------------------- */
-        /* 核心 HERO 區塊樣式 (模擬 Sketchfab 頂部) */
-        /* ------------------------------------- */
+        /* 核心 HERO 區塊樣式 */
         .hero {
-            /* 藍色漸變背景 */
             background: linear-gradient(180deg, #184c7e 0%, #297be7 100%);
             color: white;
             padding: 80px 20px 60px;
             text-align: center;
-            overflow: hidden;
-            min-height: 500px; /* 確保在載入模型時區塊不會塌陷 */
+            overflow: hidden; 
+            min-height: 500px;
         }
 
-        .hero-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .hero__content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .hero__title {
-            font-size: 2.8em;
-            font-weight: 700;
-            line-height: 1.2;
-            margin-bottom: 20px;
-        }
-
-        .static-page__introduction-subtitle {
-            font-size: 1.1em;
-            max-width: 600px;
-            margin-bottom: 40px;
-            line-height: 1.5;
-        }
-
-        /* 3D 模型容器 */
-        .hero__model {
-            width: 100%;
-            max-width: 800px; /* 限制模型最大寬度 */
-            height: 450px; 
-            margin: 40px 0;
-            position: relative;
-        }
+        .hero-container { max-width: 1200px; margin: 0 auto; }
+        .hero__content { display: flex; flex-direction: column; align-items: center; }
+        .hero__title { font-size: 2.8em; font-weight: 700; line-height: 1.2; margin-bottom: 20px; }
+        .static-page__introduction-subtitle { font-size: 1.1em; max-width: 600px; margin-bottom: 40px; line-height: 1.5; }
+        .hero__model { width: 100%; max-width: 800px; height: 450px; margin: 40px auto; position: relative; }
 
         /* <model-viewer> 樣式與進度條配置 */
         model-viewer {
             width: 100%;
             height: 100%;
             border: none;
-            
-            /* 進度條顏色: 使用 Sketchfab 的主藍色 */
             --progress-bar-color: #1caad9; 
-            
-            /* 模型載入時的背景色（如果 poster 圖片尚未載入或不存在） */
             --poster-color: #2e3644; 
         }
 
@@ -88,30 +53,14 @@
             border: none;
             transition: background-color 0.3s;
         }
-
-        .btn-primary {
-            background-color: #1caad9; 
-            color: white;
-        }
-        .btn-primary:hover {
-            background-color: #1c88bb;
-        }
-
-        .btn-important {
-            background-color: #ff9e3a; 
-            color: white;
-        }
-        .btn-important:hover {
-            background-color: #ff8507;
-        }
-
+        .btn-primary { background-color: #1caad9; color: white; }
+        .btn-primary:hover { background-color: #1c88bb; }
+        .btn-important { background-color: #ff9e3a; color: white; }
+        .btn-important:hover { background-color: #ff8507; }
+        
         @media (max-width: 768px) {
-            .hero__title {
-                font-size: 2em;
-            }
-            .hero__model {
-                height: 300px;
-            }
+            .hero__title { font-size: 2em; }
+            .hero__model { height: 300px; }
         }
     </style>
 </head>
@@ -139,8 +88,8 @@
                 
                 <div class="hero__model">
                     <model-viewer 
-                        src="https://openai9315.com/ai_cpu_concept_fbx.glb" 
-                        alt="..."
+                        src="https://raw.githubusercontent.com/dgplay001gmail/0002/YOUR_BRANCH_NAME/ai_cpu_concept_fbx.compressed.glb" 
+                        alt="AI 晶片概念模型"
                         poster="https://via.placeholder.com/800x450/184c7e/FFFFFF?text=3D+Model+Preview" 
                         camera-controls 
                         auto-rotate 
